@@ -4,4 +4,4 @@ set -xe
 g++ -o parse main.cpp
 
 # Run
-./parse
+./parse test_file.mp3
