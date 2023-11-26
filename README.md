@@ -1,0 +1,1 @@
+I want to create a parser for parsing metadata on music files. 
