@@ -105,7 +105,7 @@ int main(int argc, char **argv)
 	}
 	file.close();
 
-	char ID3[] = {73, 68, 53}; // ID3
+	char ID3[] = {73, 68, 51}; // ID3
 	bool do_ID3_parse = false;
 
 	parser_to_use parser = no_parser;
