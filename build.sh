@@ -1,4 +1,4 @@
 #!/bin/bash
 set -xe
 # Build
-g++ -o parse main.cpp
+g++ -o parse main.cpp -pedantic -Werror -Wall
