@@ -11,7 +11,7 @@ char separator = 23;
 
 struct Track
 {
-	std::string artist_name;
+	std::vector<std::string> artist_name;
 	std::string title;
 	std::string album_title;
 	std::uint16_t track_number;
@@ -20,6 +20,10 @@ struct Track
 	std::string comments;
 };
 
+// TODO:
+// 	get vector_string_tag
+// 	get_string_tag
+// 	get_uint16t_tag
 
 
 
@@ -44,7 +48,7 @@ void parse_album_name()
 {
 }
 
-void parse_title(std::vector<std::string> &title, size_t byte_parse, std::vector<char> all_bytes)
+void parse_title(std::string &title, size_t byte_parse, std::vector<char> all_bytes)
 {
 	std::cout << "Parsing title...\n";
 	std::string a_title = "";
@@ -52,6 +56,8 @@ void parse_title(std::vector<std::string> &title, size_t byte_parse, std::vector
 		a_title += all_bytes[byte_parse];
 		byte_parse++;
 	}
+	title = a_title;
+	std::cout << "\tFound title:\n\t\t" << title << "\n";
 
 }
 
@@ -71,29 +77,35 @@ int parse_ID3(
 
 
 
-int parse_other(bool &artist_found
-				,std::vector<std::string> &artist_name
+int parse_other(
+				 bool &artist_found
+				,Track *track
 				,std::vector<char> &all_bytes
 	 			,size_t i
 				)
 {
 	int j = 0;
 	const char artist_metatag[] = {65, 82, 84, 73, 83, 84, 61}; // "ARTIST="
+	const char title_metatag[] = {84, 73, 84, 76, 69, 61}; // "TITLE="
 	size_t size_of_artist_metatag = sizeof(artist_metatag) / sizeof(char);
+	size_t size_of_title_metatag = sizeof(title_metatag) / sizeof(char);
 		if(artist_metatag[0] == all_bytes[i]){
 			for(int j = 0; j < sizeof(artist_metatag) && i + j < all_bytes.size(); ++j){
 				if(all_bytes[i+j] == artist_metatag[size_of_artist_metatag - 1]){
 					size_t byte_parse = i + j; //  The byte to start parsing the artist name from
-					parse_artist_name(artist_name, byte_parse + 1, all_bytes);
+					parse_artist_name(track->artist_name, byte_parse + 1, all_bytes);
 					artist_found = false;
-				}else if(all_bytes[i+j] == title_metatag[size_of_artist_metatag - 1]){
-					size_t byte_parse = i + j;
-					parse_title(title_name, byte_parse + 1, all_bytes)
 				}
-				
-					
 			}
 			std::cout << "\n";
+		}else if(title_metatag[0] == all_bytes[i]){
+			for(int j = 0; j < sizeof(title_metatag) && i + j < all_bytes.size(); ++j){
+				if(all_bytes[i+j] == title_metatag[size_of_title_metatag - 1]){
+					size_t byte_parse = i + j;
+					parse_title(track->title, byte_parse + 1, all_bytes);
+				}
+			}
+
 		}
 		return i + j;
 }
@@ -110,6 +122,7 @@ enum class Parser{
 int main(int argc, char **argv)
 {
 	Track track;
+	Track *track_ptr = &track;
 	if(argc < 2){
 		std::cerr << "ERROR: filename not in arguments\n";
 		return -1;
@@ -167,7 +180,7 @@ int main(int argc, char **argv)
 			if(parser == Parser::ID3_parser){
 				parse_ID3(artist_found, artist_name, all_bytes, i);
 			}else{
-				//i = parse_other(artist_found, artist_name, all_bytes, i);
+				i = parse_other(artist_found, track_ptr, all_bytes, i);
 			}
 		}
 
@@ -175,10 +188,11 @@ int main(int argc, char **argv)
 	
 		
 	}
-	std::cout << "Got " << artist_name.size() << " artist names:\n";
-	for(int i = 0; i < artist_name.size(); i++){
-		std::cout << "\t" << artist_name[i] << "\n";
+	std::cout << "Got " << track.artist_name.size() << " artist names:\n";
+	for(int i = 0; i < track.artist_name.size(); i++){
+		std::cout << "\t'" << track.artist_name[i] << "'\n";
 	} 
+	std::cout << "Title of song:\n\t'" << track.title << "'\n";
 
 	return 0;
 }
