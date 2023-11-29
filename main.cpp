@@ -61,68 +61,79 @@ void parse_title(std::string &title, size_t byte_parse, std::vector<char> all_by
 
 }
 
+	
+/*
 
+	track name 	= TIT2 {84, 73, 84, 50}
+	artist name = TPE1 {84, 80, 69, 49}
+	album name 	= TALB {84, 65, 76, 66}
 
+	Some other fields I might want:
+		date 		= TDAT
+		length		= TLEN
+		File type	= TFLT
+		Comment		= COMM
 
-int parse_ID3(
+*/
+
+// ID3 specification https://web.archive.org/web/20140403014752/http://id3.org/id3v2.3.0
+void parse_ID3(
 				 bool &artist_found
 			   	,std::vector<std::string> &artist_name
 			   	,std::vector<char> &all_bytes
-				,size_t i
+				,size_t &i
 			  )
 {
-	char ID3_title[] = {84, 73, 84, 50}; // TIT2
-	return i;
+	const char title_metatag[] = {'T', 'I', 'T', '2'}; 
 }
 
 
 
-int parse_other(
+void parse_other(
 				 bool &artist_found
 				,Track *track
 				,std::vector<char> &all_bytes
-	 			,size_t i
+	 			,size_t &i
 				)
 {
 	int j = 0;
-	const char artist_metatag[] = {65, 82, 84, 73, 83, 84, 61}; // "ARTIST="
-	const char title_metatag[] = {84, 73, 84, 76, 69, 61}; // "TITLE="
+	const char artist_metatag[] = {'A', 'R', 'T', 'I', 'S', 'T', '='};
+	const char title_metatag[] = {'T', 'I', 'T', 'L', 'E', '='};
 	size_t size_of_artist_metatag = sizeof(artist_metatag) / sizeof(char);
 	size_t size_of_title_metatag = sizeof(title_metatag) / sizeof(char);
-		if(artist_metatag[0] == all_bytes[i]){
-			for(int j = 0; j < sizeof(artist_metatag) && i + j < all_bytes.size(); ++j){
-				if(all_bytes[i+j] == artist_metatag[size_of_artist_metatag - 1]){
-					size_t byte_parse = i + j; //  The byte to start parsing the artist name from
-					parse_artist_name(track->artist_name, byte_parse + 1, all_bytes);
-					artist_found = false;
-				}
+	std::vector<char> four_bytes = {all_bytes[i], all_bytes[i + 1], all_bytes[i + 2]};
+	char four_bytes[] = {all_bytes[i], all_bytes[i + 1], all_bytes[i + 2]};
+	
+	if(artist_metatag[0] == all_bytes[i]){
+		for(int j = 0; j < sizeof(artist_metatag) && i + j < all_bytes.size(); ++j){
+			if(all_bytes[i+j] == artist_metatag[size_of_artist_metatag - 1]){
+				size_t byte_parse = i + j; //  The byte to start parsing the artist name from
+				parse_artist_name(track->artist_name, byte_parse + 1, all_bytes);
+				artist_found = false;
 			}
-			std::cout << "\n";
-		}else if(title_metatag[0] == all_bytes[i]){
-			for(int j = 0; j < sizeof(title_metatag) && i + j < all_bytes.size(); ++j){
-				if(all_bytes[i+j] == title_metatag[size_of_title_metatag - 1]){
-					size_t byte_parse = i + j;
-					parse_title(track->title, byte_parse + 1, all_bytes);
-				}
-			}
-
 		}
-		return i + j;
+		std::cout << "\n";
+	}else if(title_metatag[0] == all_bytes[i]){
+		for(int j = 0; j < sizeof(title_metatag) && i + j < all_bytes.size(); ++j){
+			if(all_bytes[i+j] == title_metatag[size_of_title_metatag - 1]){
+				std::cout << "all_bytes[i+j]: \t" << all_bytes[i+j] << "title_metatag[size -1] " << title_metatag[size_of_title_metatag - 1] << "\n";
+				size_t byte_parse = i + j;
+				parse_title(track->title, byte_parse + 1, all_bytes);
+			}
+		}
+
+	}
 }
 
-
-
 enum class Parser{
-	no_parser = 0,
-	other_parser = 1,
-	ID3_parser = 2
+	no_parser,
+	other_parser,
+	ID3_parser
 };
-
 
 int main(int argc, char **argv)
 {
 	Track track;
-	Track *track_ptr = &track;
 	if(argc < 2){
 		std::cerr << "ERROR: filename not in arguments\n";
 		return -1;
@@ -145,7 +156,6 @@ int main(int argc, char **argv)
 	}
 	std::cout << "Parsing '" << filename << "'\n\n";
 	
-	
 	std::vector<std::string> artist_name;
 	int numOfArtists = 0;
 	bool artist_found = false;
@@ -161,7 +171,7 @@ int main(int argc, char **argv)
 	}
 	file.close();
 
-	char ID3[] = {73, 68, 51}; // ID3
+	char ID3[] = {'I', 'D', '3'}; // ID3
 	bool do_ID3_parse = false;
 
 	Parser parser = Parser::no_parser;
@@ -171,21 +181,16 @@ int main(int argc, char **argv)
 	if(std::equal(all_bytes.begin(), all_bytes.begin() + 3, ID3)){
 		parser = Parser::ID3_parser; 
 	}
-	
 
 	// READ THROUGH all_bytes:: but only the first 2048 bytes (for now)
-	
 	for(size_t i = 3; i < all_bytes.size() && !artist_found && i < MAX_BYTES; ++i){
 		if(i > 3){
 			if(parser == Parser::ID3_parser){
 				parse_ID3(artist_found, artist_name, all_bytes, i);
 			}else{
-				i = parse_other(artist_found, track_ptr, all_bytes, i);
+				parse_other(artist_found, &track, all_bytes, i);
 			}
 		}
-
-
-	
 		
 	}
 	std::cout << "Got " << track.artist_name.size() << " artist names:\n";
