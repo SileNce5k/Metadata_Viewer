@@ -57,7 +57,7 @@ void parse_title(std::string &title, size_t byte_parse, std::vector<char> all_by
 		byte_parse++;
 	}
 	title = a_title;
-	std::cout << "\tFound title:\n\t\t" << title << "\n";
+	std::cout << "\tFound title:\n\t\t'" << title << "'\n";
 
 }
 
