@@ -101,11 +101,11 @@ void parse_other(
 	const char title_metatag[] = {'T', 'I', 'T', 'L', 'E', '='};
 	size_t size_of_artist_metatag = sizeof(artist_metatag) / sizeof(char);
 	size_t size_of_title_metatag = sizeof(title_metatag) / sizeof(char);
-	std::vector<char> four_bytes = {all_bytes[i], all_bytes[i + 1], all_bytes[i + 2]};
+	// std::vector<char> four_bytes = {all_bytes[i], all_bytes[i + 1], all_bytes[i + 2]};
 	char four_bytes[] = {all_bytes[i], all_bytes[i + 1], all_bytes[i + 2]};
 	
 	if(artist_metatag[0] == all_bytes[i]){
-		for(int j = 0; j < sizeof(artist_metatag) && i + j < all_bytes.size(); ++j){
+		for(size_t j = 0; j < sizeof(artist_metatag) && i + j < all_bytes.size(); ++j){
 			if(all_bytes[i+j] == artist_metatag[size_of_artist_metatag - 1]){
 				size_t byte_parse = i + j; //  The byte to start parsing the artist name from
 				parse_artist_name(track->artist_name, byte_parse + 1, all_bytes);
@@ -114,7 +114,7 @@ void parse_other(
 		}
 		std::cout << "\n";
 	}else if(title_metatag[0] == all_bytes[i]){
-		for(int j = 0; j < sizeof(title_metatag) && i + j < all_bytes.size(); ++j){
+		for(size_t j = 0; j < sizeof(title_metatag) && i + j < all_bytes.size(); ++j){
 			if(all_bytes[i+j] == title_metatag[size_of_title_metatag - 1]){
 				std::cout << "all_bytes[i+j]: \t" << all_bytes[i+j] << "title_metatag[size -1] " << title_metatag[size_of_title_metatag - 1] << "\n";
 				size_t byte_parse = i + j;
@@ -157,9 +157,9 @@ int main(int argc, char **argv)
 	std::cout << "Parsing '" << filename << "'\n\n";
 	
 	std::vector<std::string> artist_name;
-	int numOfArtists = 0;
+	// int numOfArtists = 0;
 	bool artist_found = false;
-	size_t found_at = 0;
+	// size_t found_at = 0;
 	
 	std::vector<char> all_bytes;
 	char byte;
@@ -172,7 +172,7 @@ int main(int argc, char **argv)
 	file.close();
 
 	char ID3[] = {'I', 'D', '3'}; // ID3
-	bool do_ID3_parse = false;
+	// bool do_ID3_parse = false;
 
 	Parser parser = Parser::no_parser;
 
@@ -194,7 +194,7 @@ int main(int argc, char **argv)
 		
 	}
 	std::cout << "Got " << track.artist_name.size() << " artist names:\n";
-	for(int i = 0; i < track.artist_name.size(); i++){
+	for(size_t i = 0; i < track.artist_name.size(); i++){
 		std::cout << "\t'" << track.artist_name[i] << "'\n";
 	} 
 	std::cout << "Title of song:\n\t'" << track.title << "'\n";
